@@ -1,6 +1,8 @@
 import { Kerdx } from 'https://kade-95.github.io/kerdx/index.js';
-const kerdx = new Kerdx();
+window.kerdx = new Kerdx();
+import { Logger } from './functions/Logger.js';
 window.system = {};
+let logger = new Logger();
 window.k = kerdx;
 
 system.connect = (params) => {
@@ -60,36 +62,11 @@ system.generateData = () => {
     return data;
 }
 
-system.clearLog = () => {
-    document.body.find('#response-window-log').innerHTML = '';
-}
-
-system.log = (data) => {
-    let time = `[${kerdx.time()}]:`;
-    let logItem = kerdx.createElement({
-        element: 'div', attributes: { class: 'log-item' }, children: [
-            { element: 'label', text: time },
-        ]
-    });
-
-    if (data instanceof Element) {
-        logItem.append(data);
-    }
-    else if (typeof data == 'object') {
-        kerdx.displayData(data, logItem);
-    }
-    else {
-        logItem.makeElement({ element: 'span', html: data });
-    }
-
-    document.body.find('#response-window-log').append(logItem);
-}
-
 system.validateRequest = () => {
     let requestContents = document.body.find('#request-contents');
     let validateForm = kerdx.validateForm(requestContents);
     if (!validateForm.flag) {
-        system.log(`${kerdx.camelCasedToText(validateForm.elementName)} is required`);
+        logger.write(`${kerdx.camelCasedToText(validateForm.elementName)} is required`);
         return false;
     }
 
@@ -118,10 +95,10 @@ system.sendRequest = () => {
                 params.data[allData[i].find('.request-single-data-name').value] = value;
             }
         }
-        system.log(`Connecting to ${params.url}`);
+        logger.write(`Connecting to ${params.url}`);
         system.connect(params).then(result => {
-            system.log('Connected');
-            system.log(result);
+            logger.write('Connected');
+            logger.write(result);
         }).catch(error => {
             console.log(error)
         });
@@ -158,20 +135,7 @@ system.render = () => {
                     }
                 ]
             },
-            {
-                element: 'div', attributes: { id: 'response-window' }, children: [
-                    {
-                        element: 'span', attributes: { id: 'response-window-controls' }, children: [
-                            { element: 'input', attributes: { id: 'response-window-search' } },
-                            { element: 'i', attributes: { id: 'response-window-toggle', class: 'fas fa-arrow-up' } },
-                            { element: 'i', attributes: { id: 'response-window-clear', class: 'fas fa-trash' } }
-                        ]
-                    },
-                    {
-                        element: 'span', attributes: { id: 'response-window-log' }
-                    }
-                ]
-            }
+            logger.createWindow()
         ]
     });
 
@@ -202,7 +166,7 @@ system.render = () => {
         responseWindowToggle.toggleClass('fa-arrow-up');
     });
 
-    responseWindowClear.addEventListener('click', event=>{
+    responseWindowClear.addEventListener('click', event => {
         system.clearLog();
     });
 }

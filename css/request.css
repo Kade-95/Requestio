@@ -3,6 +3,7 @@
     grid-template-rows: max-content 1fr max-content;
     padding: 1em;
     gap: .5em;
+    overflow: hidden;
 }
 
 #request-contents {
@@ -42,6 +43,7 @@
     flex-direction: column;
     gap: .3em;
     align-items: flex-start;
+    overflow: auto;
 }
 
 #request-controls {
@@ -50,7 +52,7 @@
 }
 
 #submit-request {
-    padding: .5em;
+    padding: .2em;
     cursor: pointer;
     background-color: lightgray;
 }

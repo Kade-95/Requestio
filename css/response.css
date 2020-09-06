@@ -41,6 +41,33 @@
 #response-window-log{
     height: 100%;
     overflow: auto;
+    display: grid;
+    gap: 1em;
+    grid-template-rows: max-content 1fr;
+}
+
+#response-window-board{
+
+}
+
+#response-window-command{
+    padding-bottom: 20vh;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    grid-template-rows: 1fr;
+    column-gap: .5em;
+    align-items: center;
+}
+
+#response-window-input{
+    outline: unset;
+    border: unset;
+    background-color: transparent;
+    color: white;
+}
+
+.response-window-full #response-window-command{
+    padding-bottom: 90vh;
 }
 
 .log-item{
@@ -56,7 +83,7 @@
 
     #response-window.response-window-full{
         height: 100vh;
-    }
+    }    
 }
 
 @media(min-height: 1000px){
