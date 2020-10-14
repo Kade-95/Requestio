@@ -3,7 +3,6 @@ window.kerdx = new Kerdx();
 const { Logger } = require('./functions/Logger.js');
 const { System } = require('./functions/System.js');
 
-console.log('Hello world ')
 window.mmu = {};
 window.compressor = Compression();
 window.appLibrary = AppLibrary();
