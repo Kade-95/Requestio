@@ -1,0 +1,25 @@
+* {
+    padding: unset;
+    margin: unset;
+    font-size: 1em;
+}
+
+html, body {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media(min-height: 700px) {
+    * {
+        font-size: 1.02em;
+    }
+}
+
+@media(min-height: 1000px) {
+    * {
+        font-size: 1.03em;
+    }
+}
