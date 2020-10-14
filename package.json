@@ -1,0 +1,37 @@
+{
+  "name": "Requestio",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "browserify ./src/main.js -r @thekade/kerdx -p esmify > ./public/bundle.js -d",
+    "bundle": "browserify ./src/main.js -r @thekade/kerdx -p esmify > ./public/bundle.js -d --plugin tinyify",
+    "watch": "nodemon index.js",
+    "start": "node index.js",
+    "deploy": "gh-pages -d build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kade-95/Requestio.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Kade-95/Requestio/issues"
+  },
+  "homepage": "https://github.com/Kade-95/Requestio",
+  "dependencies": {
+    "@thekade/kerds": "^1.1.6",
+    "@thekade/kerdx": "^1.0.4"
+  },
+  "type": "module",
+  "devDependencies": {
+    "browser-resolve": "^2.0.0",
+    "esmify": "^2.1.1",
+    "gh-pages": "^3.1.0",
+    "tinyify": "^3.0.0",
+    "watchify": "^3.11.1"
+  }
+}

@@ -1,3 +1,6 @@
+import { System } from '../functions/System.js';
+let system = new System();
+
 export function Logger() {
     const mmu = { board: undefined, previousCommands: [], index: 0, commandList: {} };
 
@@ -6,14 +9,13 @@ export function Logger() {
     }
 
     mmu.commandList.log = (data) => {
-        let time = `[${kerdx.time()}]:`;
         let logItem = kerdx.createElement({
             element: 'div', attributes: { class: 'log-item' }
         });
-        if(data instanceof Element){
+        if (data instanceof Element) {
             logItem.append(data);
         }
-        else{
+        else {
             try {
                 logItem.innerHTML = data;
             } catch (error) {
@@ -21,6 +23,51 @@ export function Logger() {
             }
         }
         mmu.board.append(logItem);
+    }
+
+    mmu.commandList.print = (data) => {
+
+    }
+
+    mmu.commandList.request = (data) => {
+        let props = mmu.getCommandProps(data, '-');
+        if (props.url == undefined) {
+            mmu.commandList.log('Url is required');
+            return;
+        }
+
+        if (props.method == undefined) {
+            mmu.commandList.log('Method is required');
+            return;
+        }
+
+        try {
+            props.data = JSON.parse(props.data);
+            mmu.disableInput();
+            mmu.write(`Connecting to ${props.url}`);
+            system.connect(props).then(result => {
+                mmu.write('Connected');
+                mmu.write(result);
+            }).catch(error => {
+                console.log(error)
+            }).finally(mmu.enableInput());
+        } catch (error) {
+            mmu.write('Data format not valid');
+        }
+    }
+
+    mmu.getCommandProps = (data, start) => {
+        let commands = {};
+        let args = data.split(' ');
+        let arg;
+        for (let i = 0; i < args.length; i++) {
+            arg = args[i];
+            if (arg[0] == start) {
+                commands[arg.replace(start, '')] = args[i + 1];
+            }
+        }
+
+        return commands;
     }
 
     mmu.createWindow = () => {
@@ -46,17 +93,18 @@ export function Logger() {
                 }
             ]
         });
-
+        mmu.commandInput = responseWindow.find('#response-window-input');
         mmu.board = responseWindow.find('#response-window-board');
         let windowLog = responseWindow.find('#response-window-log');
         responseWindow.addEventListener('click', event => {
             if (event.target == windowLog || windowLog.isAncestor(event.target)) {
-                responseWindow.find('#response-window-input').focus();
+                mmu.commandInput.focus();
+                mmu.commandInput.setSelectionRange(mmu.commandInput.value.length, mmu.commandInput.value.length, "forward");
+
             }
         });
 
-        let commandInput = responseWindow.find('#response-window-input');
-        commandInput.addEventListener('keydown', event => {
+        mmu.commandInput.addEventListener('keydown', event => {
             let value;
             if (event.key == 'ArrowUp' || event.key == 'ArrowDown') {
                 if (event.key == 'ArrowUp') {
@@ -71,12 +119,13 @@ export function Logger() {
                 else if (mmu.index >= mmu.previousCommands.length) mmu.index = mmu.previousCommands.length - 1
 
                 value = mmu.previousCommands[mmu.index];
-                commandInput.value = value || '';
+                mmu.commandInput.value = value || '';
+                mmu.commandInput.setSelectionRange(mmu.commandInput.value.length, mmu.commandInput.value.length, "forward");
             }
             else if (event.key == 'Enter') {
-                let command = commandInput.value;
-                commandInput.value = '';
-
+                let command = mmu.commandInput.value;
+                mmu.commandInput.value = '';
+                mmu.commandList.log(`RUN: ${command}`);
                 if (command != '') {
                     mmu.previousCommands.push(command);
                     if (kerdx.isset(mmu.commandList[command.split(' ')[0]])) {
@@ -94,6 +143,8 @@ export function Logger() {
             }
         });
 
+        mmu.window = responseWindow;
+        mmu.resize();
         return responseWindow;
     }
 
@@ -111,7 +162,7 @@ export function Logger() {
 
         let time = `[${kerdx.time()}]:`;
         let logItem = kerdx.createElement({
-            element: 'div', children: [
+            element: 'div', attributes: { style: { display: 'grid', gridTemplateColumns: 'max-content 1fr' } }, children: [
                 { element: 'label', text: time },
                 item
             ]
@@ -122,6 +173,62 @@ export function Logger() {
 
     mmu.clean = () => {
         mmu.commandList.clear();
+    }
+
+    mmu.disableInput = () => {
+        mmu.commandInput.css({ display: 'none' });
+    }
+
+    mmu.enableInput = () => {
+        mmu.commandInput.cssRemove(['display']);
+    }
+
+    mmu.resize = () => {
+        mmu.window.onAdded(() => {
+            let parent = mmu.window.parentNode;
+            let canDrag = false;
+            let position = mmu.window.position()
+            let hover = event => {
+                let diff = event.y - mmu.window.position().top;
+                if (diff < 15 && diff > -15) {
+                    mmu.window.css({ cursor: 'ns-resize' });
+                }
+                else if (!canDrag) {
+                    mmu.window.cssRemove(['cursor']);
+                }
+            };
+
+            let mousedown = event => {
+                let diff = event.y - mmu.window.position().top;
+                if (diff < 15 && diff > -15) {
+                    mmu.window.css({ cursor: 'ns-resize' });
+                    canDrag = true;
+                }
+            };
+
+            let drag = event => {
+                let height = position.bottom - event.y;
+                let okHeight = height > 200;
+                let within = event.y > parent.position().top;
+                if (canDrag && within && okHeight) {
+                    mmu.window.css({ height: `${height}px` });
+                }
+            };
+
+            let mouseup = event => {
+                canDrag = false;
+            };
+
+            let mouseleave = event => {
+                canDrag = false;
+            };
+
+            mmu.window.addEventListener('mousemove', hover);
+            mmu.window.addEventListener('mousedown', mousedown);
+            parent.addEventListener('mousemove', drag);
+            mmu.window.addEventListener('mouseup', mouseup);
+            parent.addEventListener('mouseup', mouseleave);
+        });
     }
 
     return mmu;

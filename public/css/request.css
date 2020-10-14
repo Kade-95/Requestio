@@ -75,9 +75,9 @@
 
 .request-single-data {
     display: grid;
-    grid-template-columns: min-content min-content min-content min-content min-content;
+    grid-template-columns: 1fr min-content 1fr 1fr min-content;
     align-items: center;
-    gap: 1em;
+    gap: .2em;
 }
 
 .request-single-data-value, .request-single-data-name{
@@ -87,8 +87,15 @@
     color: lightgray;
     outline: none;
     letter-spacing: 0.05em;
+    width: 100%;
 }
 
 .request-single-data .request-single-data-remove {
     cursor: pointer;
+}
+
+@media(min-width: 700px){
+    .request-single-data {
+        grid-template-columns: 1fr min-content 1fr 1fr min-content;
+    } 
 }

@@ -7,13 +7,8 @@
     width: -webkit-fill-available;
     display: grid;
     grid-template-rows: max-content 1fr;
-}
-
-.response-window-full{
-    position: fixed;
-    top: 0;
+    bottom: 0;
     left: 0;
-    height: 100vh;
 }
 
 #response-window-controls{
@@ -44,6 +39,7 @@
     display: grid;
     gap: 1em;
     grid-template-rows: max-content 1fr;
+    align-items: flex-start;
 }
 
 #response-window-board{
@@ -80,10 +76,6 @@
     #response-window{
         height: 300px;
     }
-
-    #response-window.response-window-full{
-        height: 100vh;
-    }    
 }
 
 @media(min-height: 1000px){
