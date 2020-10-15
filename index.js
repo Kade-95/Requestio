@@ -1,13 +1,14 @@
 'use strict'
-import { Kerds } from '@thekade/kerds';
+const { Server, Func } = require('@thekade/kerd');
 
-global.kerds = new Kerds();
+global.server = new Server();
+const func = new Func();
 
-let { port, protocol } = kerds.getCommands('-');
-if (!kerds.isset(port)) port = 8080;
-if (!kerds.isset(protocol)) protocol = 'http';
+let { port, protocol } = server.getCommands('-');
+if (!func.isset(port)) port = 8080;
+if (!func.isset(protocol)) protocol = 'http';
 
-kerds.createServer({
+server.createServer({
     port,
     protocol,
     domains: { origins: ['*'] },
@@ -16,8 +17,8 @@ kerds.createServer({
     }
 });
 
-kerds.handleRequests = (req, res, form) => {
+server.methods.post = (req, res, form) => {
     res.end(JSON.stringify({ word: 'Hello' }));
 }
 
-kerds.makeStatic('public');
+server.makeStatic('build');

@@ -1,15 +1,15 @@
-const { Kerdx, Compression, AppLibrary } = require('@thekade/kerdx');
-window.kerdx = new Kerdx();
+const {Base, Compression, AppLibrary, Template } = require('@thekade/kerd/classes/browser');
+window.kerdx = new Base(window);
+const t = new Template(window);
+
 const { Logger } = require('./functions/Logger.js');
 const { System } = require('./functions/System.js');
 
 window.mmu = {};
 window.compressor = Compression();
 window.appLibrary = AppLibrary();
-
 let logger = new Logger();
 let system = new System();
-window.k = kerdx;
 
 mmu.generateRequestContent = (params = { name: '', options: [] }) => {
     let label = kerdx.camelCasedToText(params.name);
@@ -20,11 +20,13 @@ mmu.generateRequestContent = (params = { name: '', options: [] }) => {
     }
 
     let content = kerdx.createElement({
-        element: 'div', attributes: { class: 'request-window-content' }, children: [
+        element: 'div', attributes: { class: 'request-window-content' }, 
+        children: [
             { element: 'label', attributes: { class: 'request-window-content-label', id: name }, text: label },
             { element: nodeName, attributes: { class: 'request-window-content-data', name: params.name } },
         ]
     });
+    
 
     if (Array.isArray(params.options)) {
         content.find('.request-window-content-data').makeElement({
@@ -111,7 +113,7 @@ mmu.render = () => {
                 element: 'section', attributes: { id: 'request-window' }, children: [
                     {
                         element: 'div', attributes: { id: 'request-contents' }, children: [
-                            mmu.generateRequestContent({ name: 'url' }),
+                            mmu.generateRequestContent({ name: 'url' }).toJson(),
                             mmu.generateRequestContent({ name: 'method', options: ['POST', 'GET', 'DELETE'] }),
                             {
                                 element: 'div', attributes: { class: 'request-window-content' }, children: [
@@ -129,16 +131,17 @@ mmu.render = () => {
                     }
                 ]
             },
-            logger.createWindow()
+            // logger.createWindow()
         ]
     });
 
+    return
     let newData = main.find('#new-data');
     let submitRequest = main.find('#submit-request');
     let requestData = main.find('#request-data');
     let responseWindow = main.find('#response-window');
-    let responseWindowToggle = main.find('#response-window-toggle');
     let responseWindowClear = main.find('#response-window-clear');
+    let responseWindowToggle = main.find('#response-window-toggle');
 
     newData.addEventListener('click', event => {
         requestData.makeElement(mmu.generateData());
@@ -161,10 +164,11 @@ mmu.render = () => {
     });
 
     responseWindowClear.addEventListener('click', event => {
-        mmu.clearLog();
+        logger.clear();
     });
 }
 
 document.addEventListener('DOMContentLoaded', event => {
+    document.body.innerHTML = '';
     mmu.render();
 });

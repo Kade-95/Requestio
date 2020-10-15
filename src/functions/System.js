@@ -9,15 +9,18 @@ export function System() {
             let code = compressor.encodeLZW(sentence, dictionary);
             params.data = { code, dictionary, encoded: true };
         }
-
         return new Promise((resolve, reject) => {
             appLibrary.ajax(params)
-                .then(result => {
-                    result = JSON.parse(result);
-                    if (result.encoded == true) {
-                        result = JSON.parse(compressor.decodeLZW(result.code, result.dictionary));
+                .then(response => {
+                    try {
+                        response = JSON.parse(response);
+                    } catch (error) {
+                    } finally {
+                        if (response.encoded == true) {
+                            response = JSON.parse(compressor.decodeLZW(response.code, response.dictionary));
+                        }
+                        resolve(response);
                     }
-                    resolve(result);
                 })
                 .catch(err => {
                     reject(err);
