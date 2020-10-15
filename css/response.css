@@ -11,11 +11,17 @@
     left: 0;
 }
 
+.response-window-full#response-window{
+    height: calc(100vh - 1.1em);
+    position: absolute;
+    top: 0;
+}
+
 #response-window-controls{
     display: grid;
     justify-content: flex-end;
     align-items: center;
-    grid-template-columns: min-content min-content min-content;
+    grid-template-columns: repeat(4, min-content);
     gap: 1em;
     border-bottom: 1px solid lightgray;
     padding: .3em;
@@ -60,10 +66,6 @@
     border: unset;
     background-color: transparent;
     color: white;
-}
-
-.response-window-full #response-window-command{
-    padding-bottom: 90vh;
 }
 
 .log-item{
