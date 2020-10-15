@@ -20,13 +20,11 @@ mmu.generateRequestContent = (params = { name: '', options: [] }) => {
     }
 
     let content = kerdx.createElement({
-        element: 'div', attributes: { class: 'request-window-content' }, 
-        children: [
+        element: 'div', attributes: { class: 'request-window-content' }, children: [
             { element: 'label', attributes: { class: 'request-window-content-label', id: name }, text: label },
             { element: nodeName, attributes: { class: 'request-window-content-data', name: params.name } },
         ]
     });
-    
 
     if (Array.isArray(params.options)) {
         content.find('.request-window-content-data').makeElement({
@@ -113,7 +111,7 @@ mmu.render = () => {
                 element: 'section', attributes: { id: 'request-window' }, children: [
                     {
                         element: 'div', attributes: { id: 'request-contents' }, children: [
-                            mmu.generateRequestContent({ name: 'url' }).toJson(),
+                            mmu.generateRequestContent({ name: 'url' }),
                             mmu.generateRequestContent({ name: 'method', options: ['POST', 'GET', 'DELETE'] }),
                             {
                                 element: 'div', attributes: { class: 'request-window-content' }, children: [
@@ -131,11 +129,10 @@ mmu.render = () => {
                     }
                 ]
             },
-            // logger.createWindow()
+            logger.createWindow()
         ]
     });
 
-    return
     let newData = main.find('#new-data');
     let submitRequest = main.find('#submit-request');
     let requestData = main.find('#request-data');
