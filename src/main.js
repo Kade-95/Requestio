@@ -1,7 +1,5 @@
-const {Base, Compression, AppLibrary, Template } = require('@thekade/kerd/classes/browser');
+const { Base, AppLibrary, Compression} = require('kedio/browser');
 window.kerdx = new Base(window);
-const t = new Template(window);
-
 const { Logger } = require('./functions/Logger.js');
 const { System } = require('./functions/System.js');
 
