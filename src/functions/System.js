@@ -5,7 +5,7 @@ export function System() {
 
         if (params.encode == true) {
             let sentence = JSON.stringify(params.data);
-            let dictionary = kerdx.array.toSet(sentence.split('')).join('');
+            let dictionary = base.array.toSet(sentence.split('')).join('');
             let code = compressor.encodeLZW(sentence, dictionary);
             params.data = { code, dictionary, encoded: true };
         }

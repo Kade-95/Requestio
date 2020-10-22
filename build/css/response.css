@@ -1,23 +1,37 @@
-#response-window{
-    height: 200px;
+#response-window {
     background-color: rgb(30, 30, 30);
     overflow: hidden;
-    padding: .5em;
+    padding: 0em .5em;
     border: 1px solid lightgray;
-    width: -webkit-fill-available;
     display: grid;
     grid-template-rows: max-content 1fr;
+    grid-template-columns: 1fr;
+    align-items: flex-start;
     bottom: 0;
-    left: 0;
+    right: 0;
 }
 
-.response-window-full#response-window{
-    height: calc(100vh - 1.1em);
+.dock-down #response-window{
+    height: 240px;
+    width: -webkit-fill-available;
+}
+
+.dock-side #response-window{
+    height: -webkit-fill-available;
+    min-width: 350px;
+}
+
+.response-window-full#response-window {
     position: absolute;
+    width: -webkit-fill-available;
+    height: -webkit-fill-available;
     top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
-#response-window-controls{
+#response-window-controls {
     display: grid;
     justify-content: flex-end;
     align-items: center;
@@ -27,19 +41,19 @@
     padding: .3em;
 }
 
-#response-window-search{
+#response-window-search {
     color: lightgray;
     border: 1px solid lightgray;
     background-color: transparent;
     height: 30px;
 }
 
-#response-window-toggle, #response-window-clear{
+#response-window-toggle, #response-window-clear {
     color: lightgray;
     cursor: pointer;
 }
 
-#response-window-log{
+#response-window-log {
     height: 100%;
     overflow: auto;
     display: grid;
@@ -48,44 +62,67 @@
     align-items: flex-start;
 }
 
-#response-window-board{
+#response-window-board {}
 
-}
-
-#response-window-command{
-    padding-bottom: 20vh;
+#response-window-command {
     display: grid;
     grid-template-columns: max-content 1fr;
     grid-template-rows: 1fr;
     column-gap: .5em;
-    align-items: center;
+    align-items: flex-start;
+    height: 100%;
 }
 
-#response-window-input{
+#response-window-input {
     outline: unset;
     border: unset;
     background-color: transparent;
     color: white;
 }
 
-.log-item{
+#response-window-options-pane {
+    position: absolute;
+    right: 0;
+    background-color: black;
+    padding: 1em;
+    display: grid;
+    gap: .5em;
+}
+
+#section-A.response-window-options-pane-section {
+    display: grid;
+    grid-template-columns: max-content max-content;
+    gap: .5em;
+}
+
+#dock-options {
+    display: grid;
+    grid-template-columns: repeat(4, max-content);
+    gap: .3em;
+    align-items: center;
+}
+
+#dock-options .dock-options-icon {
+    color: gray;
+    cursor: pointer;
+}
+
+#dock-options .dock-options-icon:hover, #dock-options .dock-options-icon.active {
+    color: white;
+}
+
+.log-action{
     display: grid;
     grid-template-columns: max-content 1fr;
     gap: .3em;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
-@media(min-height: 700px){
-    #response-window{
-        height: 300px;
-    }
-}
-
-@media(min-height: 1000px){
-    #response-window{
-        height: 400px;
-    }
-
-    #response-window.response-window-full{
-        height: 100vh;
-    }
+.log-result{
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: .3em;
+    overflow-wrap: break-word;
+    overflow: hidden;
 }

@@ -1,5 +1,5 @@
-const { Base, AppLibrary, Compression} = require('kedio/browser');
-window.kerdx = new Base(window);
+const { Base, AppLibrary, Compression } = require('kedio/browser');
+window.base = new Base(window);
 const { Logger } = require('./functions/Logger.js');
 const { System } = require('./functions/System.js');
 
@@ -10,14 +10,14 @@ let logger = new Logger();
 let system = new System();
 
 mmu.generateRequestContent = (params = { name: '', options: [] }) => {
-    let label = kerdx.camelCasedToText(params.name);
+    let label = base.camelCasedToText(params.name);
     let nodeName = 'input';
 
     if (Array.isArray(params.options)) {
         nodeName = 'select';
     }
 
-    let content = kerdx.createElement({
+    let content = base.createElement({
         element: 'div', attributes: { class: 'request-window-content' }, children: [
             { element: 'label', attributes: { class: 'request-window-content-label', id: name }, text: label },
             { element: nodeName, attributes: { class: 'request-window-content-data', name: params.name } },
@@ -40,10 +40,10 @@ mmu.generateRequestContent = (params = { name: '', options: [] }) => {
 }
 
 mmu.generateData = () => {
-    let data = kerdx.createElement({
+    let data = base.createElement({
         element: 'div', attributes: { class: 'request-single-data' }, children: [
             { element: 'input', attributes: { class: 'request-single-data-name', placeHolder: 'Name' } },
-            { element: 'label', text: '=>' },
+            { element: 'i', attributes: {class: 'fas fa-angle-double-right'} },
             { element: 'input', attributes: { class: 'request-single-data-value', placeHolder: 'Value' } },
             { element: 'select', attributes: { class: 'request-single-data-type' }, options: ['String', 'Array', 'Json'] },
             { element: 'i', attributes: { class: 'request-single-data-remove fas fa-trash' } }
@@ -55,9 +55,9 @@ mmu.generateData = () => {
 
 mmu.validateRequest = () => {
     let requestContents = document.body.find('#request-contents');
-    let validateForm = kerdx.validateForm(requestContents);
+    let validateForm = base.validateForm(requestContents);
     if (!validateForm.flag) {
-        logger.write(`${kerdx.camelCasedToText(validateForm.elementName)} is required`);
+        logger.write(`${base.camelCasedToText(validateForm.elementName)} is required`);
         return false;
     }
 
@@ -68,7 +68,7 @@ mmu.sendRequest = () => {
     let requestContents = document.body.find('#request-contents');
 
     if (mmu.validateRequest()) {
-        let params = kerdx.jsonForm(requestContents);
+        let params = base.jsonForm(requestContents);
         let requestData = document.body.find('#request-data');
         let allData = requestData.findAll('.request-single-data');
         params.data = {};
@@ -103,8 +103,7 @@ mmu.render = () => {
     });
 
     let main = document.body.makeElement({
-        element: 'main', attributes: { id: 'main-window' }, children: [
-            { element: 'nav', attributes: { id: 'navigator' } },
+        element: 'main', attributes: { id: 'main-window', class: 'dock-side' }, children: [
             {
                 element: 'section', attributes: { id: 'request-window' }, children: [
                     {
@@ -134,9 +133,7 @@ mmu.render = () => {
     let newData = main.find('#new-data');
     let submitRequest = main.find('#submit-request');
     let requestData = main.find('#request-data');
-    let responseWindow = main.find('#response-window');
-    let responseWindowClear = main.find('#response-window-clear');
-    let responseWindowToggle = main.find('#response-window-toggle');
+
 
     newData.addEventListener('click', event => {
         requestData.makeElement(mmu.generateData());
@@ -150,16 +147,6 @@ mmu.render = () => {
 
     submitRequest.addEventListener('click', event => {
         mmu.sendRequest();
-    });
-
-    responseWindowToggle.addEventListener('click', event => {
-        responseWindow.toggleClass('response-window-full');
-        responseWindowToggle.toggleClass('fa-arrow-down');
-        responseWindowToggle.toggleClass('fa-arrow-up');
-    });
-
-    responseWindowClear.addEventListener('click', event => {
-        logger.clear();
     });
 }
 

@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "browserify ./src/main.js -p esmify > ./build/bundle.js -d",
     "bundle": "browserify ./src/main.js -p esmify > ./build/bundle.js -d --plugin tinyify",
-    "watch": "nodemon index.js",
+    "watch": "watchify ./src/main.js -p esmify -o ./build/bundle.js -v -d ",
     "start": "node index.js",
     "deploy": "gh-pages -d build"
   },
