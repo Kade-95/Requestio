@@ -1,0 +1,112 @@
+#explorer-window {
+    display: grid;
+    grid-template-rows: max-content 1fr;
+    grid-template-columns: 1fr;
+    gap: 1.5em;
+    height: 100%;
+}
+
+#explorer-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-transform: uppercase;
+}
+
+#explorer-canvas {
+    display: grid;
+    grid-template-rows: 1fr max-content;
+    grid-template-columns: 1fr;
+}
+
+#explorer-empty{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: black;
+    color: white;
+}
+
+#explorer-pages-container{
+    display: grid;
+    background-color: black;
+    padding: .5em;
+    gap: .5em;
+    grid-template-columns: repeat(3, 1fr);
+    align-items: flex-start;
+}
+
+.explorer-page-single{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2em;
+    background-color: black;
+    color: white;
+    cursor: pointer;
+    border: 1px solid white;
+    position: relative;
+}
+
+.explorer-page-single-options{
+    position: absolute;
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    gap: .3em;
+    align-items: flex-start;
+    left: 5px;
+    top: 5px;
+}
+
+#explorer-controls {
+    display: grid;
+    grid-template-columns: 1fr max-content;
+    align-items: center;
+    border: 2px solid white;
+}
+
+#explorer-controls #current-page {
+    height: 40px;
+    border: none;
+    padding: .5em;
+    outline-color: white;
+    background-color: black;
+    color: white;
+}
+
+#explorer-action {
+    border: none;
+    background-color: black;
+    color: white;
+    padding: 1em;
+    cursor: pointer;
+    height: 100%;
+    outline: none;
+}
+
+#explorer-options{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+}
+
+.explorer-option-single{
+    color: black;
+    text-align: left;
+    width: calc(100% - 1em);
+    padding: .5em;
+    font-size: .8em;
+}
+
+.explorer-option-single:hover{
+    background-color: black;
+    color: white;
+}
+
+@media(min-width: 700px){
+    #explorer-pages-container{
+        grid-template-columns: repeat(6, 1fr);
+    }
+}

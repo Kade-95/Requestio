@@ -1,0 +1,77 @@
+#sidebar{
+    display: grid;
+    grid-template-rows: max-content 1fr;
+    grid-template-columns: max-content;
+    align-items: flex-start;
+    height: 100%;
+    gap: 1em;
+}
+
+#logo{
+    font-weight: bolder;
+    display: flex;
+    padding: .5em .1em;
+    letter-spacing: .1em;
+    font-size: 1.3em;
+}
+
+#sidebar-panel{
+    display: grid;
+    grid-template-rows: repeat(2, max-content);
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+    justify-items: center;
+}
+
+.sidebar-button{
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    position: relative;
+    justify-content: center;
+    align-items: center;
+    padding: 1em;
+    width: -webkit-fill-available;
+}
+
+.sidebar-button:hover{
+    background-color: black;
+    color: white;
+}
+
+#sidebar-panel > .sidebar-button-icon{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.3em;
+    color: inherit;
+}
+
+.listed-options{
+    position: absolute;
+    left: calc(2em + 2em);
+    top: 0;
+    z-index: 2;
+    display: grid;
+    grid-template-rows: repeat(3, max-content);
+    grid-template-columns: 1fr;
+    width: max-content;
+    background-color: white;
+}
+
+.listed-options.hide{
+    display: none;
+}
+
+.listed-option-item{
+    color: black;
+    display: flex;
+    cursor: pointer;
+    width: -webkit-fill-available;
+    padding: .5em;
+}
+
+.listed-option-item:hover{
+    background-color: black;
+    color: white;
+}

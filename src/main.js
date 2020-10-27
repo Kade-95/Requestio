@@ -1,156 +1,284 @@
-const { Base, AppLibrary, Compression } = require('kedio/browser');
+const { Base, AppLibrary, Compression, IndexedLibrary, ObjectsLibrary } = require('kedio/browser');
 window.base = new Base(window);
-const { Logger } = require('./functions/Logger.js');
-const { System } = require('./functions/System.js');
-
-window.mmu = {};
+window.self = {};
 window.compressor = Compression();
 window.appLibrary = AppLibrary();
-let logger = new Logger();
-let system = new System();
+window.database = IndexedLibrary('Requestio');
 
-mmu.generateRequestContent = (params = { name: '', options: [] }) => {
-    let label = base.camelCasedToText(params.name);
-    let nodeName = 'input';
+const Request = require('./functions/Request');
+const PageTitle = require('./functions/PageTitle');
+const Explorer = require('./functions/Explorer');
+const settings = require('./functions/Settings')();
 
-    if (Array.isArray(params.options)) {
-        nodeName = 'select';
-    }
+self.explorer = Explorer();
 
-    let content = base.createElement({
-        element: 'div', attributes: { class: 'request-window-content' }, children: [
-            { element: 'label', attributes: { class: 'request-window-content-label', id: name }, text: label },
-            { element: nodeName, attributes: { class: 'request-window-content-data', name: params.name } },
-        ]
+self.getRequestId = () => {
+    let flag = true, id;
+    return new Promise((resolve, reject) => {
+        base.runParallel({
+            pages: database.find({ collection: 'pages', many: true }),
+            openPages: database.find({ collection: 'openpages', many: true })
+        }, res => {
+            let pages = res.pages.concat(res.openPages);
+            let _ids = base.object.valueOfObjectArray(pages, '_id');
+            id = database.generateId();
+            while (flag = _ids.includes(id)) {
+                id = database.generateId();
+            }
+
+            resolve(id);
+        });
+    });
+}
+
+self.createRequestPage = (data = {}, saved = {}) => {
+    let page = Array.from(self.pageContent.findAll('.single-file')).find(page => {
+        return page.props._id == data._id;
     });
 
-    if (Array.isArray(params.options)) {
-        content.find('.request-window-content-data').makeElement({
-            element: 'option', attributes: { selected: true, disabled: true, value: null }, text: `Select ${label}`
-        });
+    if (page) {
+        page.pageTitle.click();
+    }
+    else {
+        let request = Request(data, saved);
+        let pageTitle = PageTitle({ name: data.name, content: request });
+        request.pageTitle = pageTitle;
+        request.checkChanges();
 
-        for (let option of params.options) {
-            content.find('.request-window-content-data').makeElement({
-                element: 'option', attributes: { value: option }, text: option
+        document.body.find('#header-window').append(pageTitle);
+        document.body.find('#page-content').append(request);
+    }
+}
+
+self.saveActiveRequest = (flag) => {
+    let active = document.body.find('#page-content').find('.active.single-file');
+    if (active) {
+        if (flag) {//save as
+            let data = JSON.parse(JSON.stringify(active.props));
+            self.getRequestId().then(id => {
+                data._id = id;
+                self.explorer.save(data);
             });
         }
-    }
-
-    return content;
-}
-
-mmu.generateData = () => {
-    let data = base.createElement({
-        element: 'div', attributes: { class: 'request-single-data' }, children: [
-            { element: 'input', attributes: { class: 'request-single-data-name', placeHolder: 'Name' } },
-            { element: 'i', attributes: {class: 'fas fa-angle-double-right'} },
-            { element: 'input', attributes: { class: 'request-single-data-value', placeHolder: 'Value' } },
-            { element: 'select', attributes: { class: 'request-single-data-type' }, options: ['String', 'Array', 'Json'] },
-            { element: 'i', attributes: { class: 'request-single-data-remove fas fa-trash' } }
-        ]
-    });
-
-    return data;
-}
-
-mmu.validateRequest = () => {
-    let requestContents = document.body.find('#request-contents');
-    let validateForm = base.validateForm(requestContents);
-    if (!validateForm.flag) {
-        logger.write(`${base.camelCasedToText(validateForm.elementName)} is required`);
-        return false;
-    }
-
-    return true;
-}
-
-mmu.sendRequest = () => {
-    let requestContents = document.body.find('#request-contents');
-
-    if (mmu.validateRequest()) {
-        let params = base.jsonForm(requestContents);
-        let requestData = document.body.find('#request-data');
-        let allData = requestData.findAll('.request-single-data');
-        params.data = {};
-        let value, type;
-        for (let i = 0; i < allData.length; i++) {
-            value = allData[i].find('.request-single-data-value').value;
-            type = allData[i].find('.request-single-data-type').value;
-            if (type == 'Json') {
-                params.data[allData[i].find('.request-single-data-name').value] = JSON.parse(value);
-            }
-            else if (type == 'Array') {
-                params.data[allData[i].find('.request-single-data-name').value] = value == '' ? [] : value.split(',');
+        else if (active.isChanged) {
+            if (active.saved.name == undefined) {
+                let data = JSON.parse(JSON.stringify(active.props));
+                self.explorer.save(data).then(saved => {
+                    active.draft.name = saved.name;
+                    active.pageTitle.changeTitle(saved.name);
+                    active.saved = JSON.parse(JSON.stringify(active.props));
+                    database.save({ collection: 'openpages', query: active.props, check: { _id: active.props._id } });
+                });
             }
             else {
-                params.data[allData[i].find('.request-single-data-name').value] = value;
+                database.update({ collection: 'pages', query: active.props, check: { name: active.saved.name } }).then(saved => {
+                    if (saved.documents[active.saved._id].status == true) {
+                        alert('Page saved');
+                        active.saved = JSON.parse(JSON.stringify(active.props));
+                        active.checkChanges();
+                    }
+                    else {
+                        alert('Error! Page not saved');
+                    }
+                });
             }
         }
-        logger.disableInput();
-        logger.write(`Connecting to ${params.url}`);
-        system.connect(params).then(result => {
-            logger.write('Connected');
-            logger.write(result);
-        }).catch(error => {
-            console.log(error)
-        }).finally(logger.enableInput());
     }
+    else {
+        alert('Error! No open pages');
+    }
+};
+
+self.openRequestPage = () => {
+    self.explorer.open().then(data => {
+        self.createRequestPage(data, data);
+    });
 }
 
-mmu.render = () => {
-    let header = document.body.makeElement({
-        element: 'header', attributes: { id: 'header-window' }
+self.openSettings = () => {
+    if (!Array.from(document.body.find('#page-content').findAll('.single-file')).includes(settings)) {
+        let pageTitle = PageTitle({ name: 'System:settings', content: settings });
+        settings.pageTitle = pageTitle;
+
+        document.body.find('#header-window').append(pageTitle);
+        document.body.find('#page-content').append(settings);
+    }
+
+    settings.pageTitle.click();
+
+
+}
+
+self.getFileOptions = () => {
+    if (self.fileOption == undefined) {
+        self.fileOption = base.createElement({
+            element: 'span', attributes: { id: 'file-options', class: 'listed-options' }, children: [
+                { element: 'span', attributes: { id: 'new', class: 'listed-option-item' }, text: 'New' },
+                { element: 'span', attributes: { id: 'open', class: 'listed-option-item' }, text: 'Open' },
+                { element: 'span', attributes: { id: 'save', class: 'listed-option-item' }, text: 'Save' },
+                { element: 'span', attributes: { id: 'save-as', class: 'listed-option-item' }, text: 'Save As' }
+            ]
+        });
+
+        self.fileOption.addEventListener('click', event => {
+            if (event.target.id == 'new') {
+                self.getRequestId().then(_id => {
+                    self.createRequestPage({ _id }, {});
+                });
+            }
+            else if (event.target.id == 'open') {
+                self.openRequestPage();
+            }
+            else if (event.target.id == 'save') {
+                self.saveActiveRequest();
+            }
+            else if (event.target.id == 'save-as') {
+                self.saveActiveRequest(true);
+            }
+        });
+
+        self.fileOption.notBubbledEvent('click', event => {
+            if (self.fileOption.added) {
+                self.fileOption.added = false;
+                self.fileOption.remove();
+            }
+        });
+    }
+
+    self.fileOption.onAdded(() => {
+        let timed = setTimeout(() => {
+            self.fileOption.added = true;
+            clearTimeout(timed);
+        }, 100);
     });
 
-    let main = document.body.makeElement({
-        element: 'main', attributes: { id: 'main-window', class: 'dock-side' }, children: [
+    return self.fileOption;
+}
+
+self.getViewOptions = () => {
+    if (self.viewOption == undefined) {
+        self.viewOption = base.createElement({
+            element: 'span', attributes: { id: 'view-options', class: 'listed-options' }, children: [
+                { element: 'span', attributes: { id: 'settings', class: 'listed-option-item' }, text: 'Settings' },
+            ]
+        });
+
+        self.viewOption.addEventListener('click', event => {
+            if (event.target.id == 'settings') {
+                self.openSettings();
+            }
+        });
+
+        self.viewOption.notBubbledEvent('click', event => {
+            if (self.viewOption.added) {
+                self.viewOption.added = false;
+                self.viewOption.remove();
+            }
+        });
+    }
+
+    self.viewOption.onAdded(() => {
+        let timed = setTimeout(() => {
+            self.viewOption.added = true;
+            clearTimeout(timed);
+        }, 100);
+    });
+
+    return self.viewOption;
+}
+
+self.loadDraft = () => {
+    window.database.find({ collection: 'openpages', many: true }).then(pages => {
+        for (let page of pages) {
+            window.database.find({ collection: 'pages', query: { _id: page._id } }).then(saved => {
+                self.createRequestPage(page, saved || {});
+            });
+        }
+    });
+}
+
+self.render = () => {
+    self.init().then(() => {
+        let [sidebar, main] = document.body.makeElement([
             {
-                element: 'section', attributes: { id: 'request-window' }, children: [
+                element: 'sidebar', attributes: { id: 'sidebar' }, children: [
                     {
-                        element: 'div', attributes: { id: 'request-contents' }, children: [
-                            mmu.generateRequestContent({ name: 'url' }),
-                            mmu.generateRequestContent({ name: 'method', options: ['POST', 'GET', 'DELETE'] }),
+                        element: 'span', attributes: { id: 'logo' }, html: `{${base.createElement({
+                            element: 'a', attributes: { style: { color: 'blue', fontSize: '1em' } }, text: 'Req'
+                        }).outerHTML}}`
+                    },
+                    {
+                        element: 'div', attributes: { id: 'sidebar-panel' }, children: [
                             {
-                                element: 'div', attributes: { class: 'request-window-content' }, children: [
-                                    { element: 'label', attributes: { class: 'request-window-content-label' }, text: 'Request Data' },
-                                    { element: 'i', attributes: { class: 'fas fa-plus', id: 'new-data' } }
+                                element: 'span', attributes: { id: 'file', class: 'sidebar-button' }, children: [
+                                    { element: 'i', attributes: { class: 'sidebar-button-icon fas fa-folder' } },
                                 ]
                             },
-                        ]
-                    },
-                    { element: 'div', attributes: { id: 'request-data' } },
-                    {
-                        element: 'div', attributes: { id: 'request-controls' }, children: [
-                            { element: 'button', attributes: { id: 'submit-request' }, text: 'Submit Request' }
+                            {
+                                element: 'span', attributes: { id: 'view', class: 'sidebar-button' }, children: [
+                                    { element: 'i', attributes: { class: 'sidebar-button-icon fas fa-cog' } },
+                                ]
+                            },
                         ]
                     }
                 ]
             },
-            logger.createWindow()
-        ]
+            {
+                element: 'main', attributes: { id: 'main-window' }, children: [
+                    {
+                        element: 'header', attributes: { id: 'header-window' }, children: [
+
+                        ]
+                    },
+                    {
+                        element: 'section', attributes: { id: 'page-content' }
+                    }
+                ]
+            }
+        ]);
+
+        self.pageContent = document.body.find('#page-content');
+        let sideClicked;
+
+        sidebar.addEventListener('click', event => {
+            sideClicked = event.target;
+            if ((sideClicked.id == 'file' || sideClicked.getParents('#file') != null) && !(sideClicked.id == 'file-options' || sideClicked.getParents('#file-options') != null)) {
+                sidebar.find('#file.sidebar-button').toggleChild(self.getFileOptions());
+            }
+
+            if ((sideClicked.id == 'view' || sideClicked.getParents('#view') != null) && !(sideClicked.id == 'view-options' || sideClicked.getParents('#view-options') != null)) {
+                sidebar.find('#view.sidebar-button').toggleChild(self.getViewOptions());
+            }
+        });
+
+        self.loadDraft();
     });
+}
 
-    let newData = main.find('#new-data');
-    let submitRequest = main.find('#submit-request');
-    let requestData = main.find('#request-data');
-
-
-    newData.addEventListener('click', event => {
-        requestData.makeElement(mmu.generateData());
-    });
-
-    requestData.addEventListener('click', event => {
-        if (event.target.classList.contains('request-single-data-remove')) {
-            event.target.parentNode.remove();
+self.init = async () => {
+    let collections = ['pages', 'openpages'];
+    let toCreate = [];
+    for (let c of collections) {
+        if (!await database.collectionExists(c)) {
+            toCreate.push(c);
         }
-    });
-
-    submitRequest.addEventListener('click', event => {
-        mmu.sendRequest();
-    });
+    }
+    
+    if (toCreate.length) {
+        let splash = document.body.makeElement({
+            element: 'span', attributes: { id: 'splash-screen' }, children: [
+                { element: 'i', attributes: { id: 'icon', class: 'fas fa-cog fa-spin' }},
+                { element: 'a', attributes: { id: 'welcome-note' }, text: 'Setting up...' }
+            ]
+        })
+        return window.database.createCollection(...toCreate).then(done => {
+            splash.remove();
+            return;
+        });
+    }
 }
 
 document.addEventListener('DOMContentLoaded', event => {
     document.body.innerHTML = '';
-    mmu.render();
+    self.render();
 });

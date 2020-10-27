@@ -1,6 +1,6 @@
-export function System() {
-    const mmu = {};
-    mmu.connect = (params = { encode: true, data: {} }) => {
+function System() {
+    const self = {};
+    self.connect = (params = { encode: true, data: {} }) => {
         if (params.encode == undefined) params.encode = true;
 
         if (params.encode == true) {
@@ -27,5 +27,7 @@ export function System() {
                 });
         });
     }
-    return mmu;
+    return self;
 }
+
+module.exports = System;

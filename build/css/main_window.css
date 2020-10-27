@@ -4,8 +4,9 @@
     background-color: black;
     color: white;
     display: grid;
-    gap: 1em .1em;
-    align-items: flex-start;
+    grid-template-rows: min-content 1fr;
+    grid-template-columns: 1fr;
+    position: relative;
 }
 
 .dock-down {
@@ -16,4 +17,29 @@
 .dock-side {
     grid-template-columns: 1fr min-content;
     grid-template-rows: 1fr;
+}
+
+.single-file{
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    color: white;
+    display: none;
+    gap: 1em .1em;
+    align-items: flex-start;
+    overflow: hidden;
+}
+
+.single-file.active{
+    display: grid;
+}
+
+#page-content {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr;
+    position: relative;
+    overflow: hidden;
 }

@@ -1,11 +1,51 @@
-import { System } from '../functions/System.js';
+import System from '../functions/System.js';
 let system = new System();
 
-export function Logger() {
-    const self = { board: undefined, previousCommands: [], index: 0, commandList: {}, height: '', width: '' };
+function Logger(stored) {
+    const self = base.createElement({
+        element: 'div', attributes: { id: 'response-window' }, children: [
+            {
+                element: 'span', attributes: { id: 'response-window-controls' }, children: [
+                    { element: 'input', attributes: { id: 'response-window-search' } },
+                    { element: 'i', attributes: { id: 'response-window-clear', class: 'response-window-icon fas fa-minus-circle' } },
+                    { element: 'i', attributes: { id: 'response-window-toggle', class: 'response-window-icon', 'data-icon': 'fas,fa-angle-left' } },
+                    { element: 'i', attributes: { id: 'response-window-options', class: 'response-window-icon fas fa-ellipsis-v' } },
+                ]
+            },
+            {
+                element: 'span', attributes: { id: 'response-console' }, children: [
+                    { element: 'span', attributes: { id: 'response-window-board' }, children: stored.history },
+                    {
+                        element: 'span', attributes: { id: 'response-window-command' }, children: [
+                            { element: 'i', attributes: { class: 'fas fa-angle-right' } },
+                            { element: 'input', attributes: { id: 'response-window-input', autoComplete: 'off' } }
+                        ]
+                    }
+                ]
+            }
+        ]
+    });
+
+    self.commandInput = self.find('#response-window-input');
+    self.board = self.find('#response-window-board');
+    self.console = self.find('#response-console');
+    self.responseWindowClear = self.find('#response-window-clear');
+    self.responseWindowToggle = self.find('#response-window-toggle');
+    self.responseWindowOptions = self.find('#response-window-options');
+    self.index = 0;
+    self.commandList = {};
+    self.height = '';
+    self.width = '';
+
+    self.stored = stored;
+    if (self.stored == undefined) self.stored = {};
+    self.stored.history = self.stored.history || [];
+    self.stored.previousCommands = self.stored.previousCommands || [];
 
     self.commandList.clear = () => {//clear the log
         self.board.innerHTML = '';
+        self.stored.history = [];
+        self.dispatchEvent(new CustomEvent('logChanged'));
     }
 
     self.commandList.log = (data) => {//log an output
@@ -23,7 +63,11 @@ export function Logger() {
                 logAction.innerHTML = 'Error writing to the log';
             }
         }
+
         self.board.append(logAction);
+        self.stored.history.push(logAction.outerHTML);
+
+        self.dispatchEvent(new CustomEvent('logChanged'));
     }
 
     self.commandList.error = (data) => {//log an error
@@ -75,48 +119,16 @@ export function Logger() {
         return commands;
     }
 
-    self.createWindow = () => {//create the cli
-        let responseWindow = base.createElement({
-            element: 'div', attributes: { id: 'response-window' }, children: [
-                {
-                    element: 'span', attributes: { id: 'response-window-controls' }, children: [
-                        { element: 'input', attributes: { id: 'response-window-search' } },
-                        { element: 'i', attributes: { id: 'response-window-clear', class: 'response-window-icon fas fa-minus-circle' } },
-                        { element: 'i', attributes: { id: 'response-window-toggle', class: 'response-window-icon', 'data-icon': 'fas,fa-angle-left' } },
-                        { element: 'i', attributes: { id: 'response-window-options', class: 'response-window-icon fas fa-ellipsis-v' } },
-                    ]
-                },
-                {
-                    element: 'span', attributes: { id: 'response-window-log' }, children: [
-                        { element: 'span', attributes: { id: 'response-window-board' } },
-                        {
-                            element: 'span', attributes: { id: 'response-window-command' }, children: [
-                                { element: 'i', attributes: { class: 'fas fa-angle-right' } },
-                                { element: 'input', attributes: { id: 'response-window-input', autoComplete: 'off' } }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        });
-
-        self.window = responseWindow;
-        self.commandInput = self.window.find('#response-window-input');
-        self.board = self.window.find('#response-window-board');
-        self.windowLog = self.window.find('#response-window-log');
-        self.responseWindowClear = self.window.find('#response-window-clear');
-        self.responseWindowToggle = self.window.find('#response-window-toggle');
-        self.responseWindowOptions = self.window.find('#response-window-options');
-
-        self.window.addEventListener('click', event => {
-            if (event.target == self.windowLog || self.windowLog.isAncestor(event.target)) {
+    self.init = () => {//create the cli
+        self.addEventListener('click', event => {
+            if (event.target == self.console || self.console.isAncestor(event.target)) {
                 self.commandInput.focus();
                 self.commandInput.setSelectionRange(self.commandInput.value.length, self.commandInput.value.length, "forward");
             }
         });
 
         self.responseWindowToggle.addEventListener('click', event => {
-            self.window.toggleClass('response-window-full');
+            self.toggleClass('response-window-full');
             self.shapeShift();
         });
 
@@ -125,12 +137,11 @@ export function Logger() {
         });
 
         self.responseWindowOptions.addEventListener('click', event => {
-            self.window.find('#response-window-log').toggleChild(self.getOptionsWindow());
+            self.find('#response-console').toggleChild(self.getOptionsWindow());
         });
 
         self.resize();
         self.handleInputs();
-        return responseWindow;
     }
 
     self.handleInputs = () => {
@@ -145,17 +156,17 @@ export function Logger() {
                 }
 
                 //restrict to bounds
-                if (self.previousCommands.length == 0) {
+                if (self.stored.previousCommands.length == 0) {
                     self.index = 0;//is empty then index is 0
                 }
                 else if (self.index < 0) {
                     self.index = 0;//navigated below scope 0 bring back to 0
                 }
-                else if (self.index >= self.previousCommands.length) {
-                    self.index = self.previousCommands.length - 1;//navigated above list, point to the last
+                else if (self.index >= self.stored.previousCommands.length) {
+                    self.index = self.stored.previousCommands.length - 1;//navigated above list, point to the last
                 }
 
-                value = self.previousCommands[self.index];
+                value = self.stored.previousCommands[self.index];
                 self.commandInput.value = value || '';
                 self.commandInput.setSelectionRange(self.commandInput.value.length, self.commandInput.value.length, "forward");
             }
@@ -169,7 +180,7 @@ export function Logger() {
                     ]
                 }));
                 if (command != '') {//avoid empty commands
-                    self.previousCommands.push(command);
+                    self.stored.previousCommands.push(command);
                     if (base.isset(self.commandList[command.split(' ')[0]])) {//is command in commandlist
                         self.commandList[command.split(' ')[0]](command.replace(command.split(' ')[0], '').trim());
                     }
@@ -181,7 +192,7 @@ export function Logger() {
                     self.write(command);
                 }
 
-                self.index = self.previousCommands.length - 1;//register index
+                self.index = self.stored.previousCommands.length - 1;//register index
             }
         });
     }
@@ -189,25 +200,25 @@ export function Logger() {
     self.shapeShift = () => {
         self.responseWindowToggle.removeClasses(self.responseWindowToggle.dataset.icon);
 
-        if (self.window.classList.contains('response-window-full')) {// on fullwindow
-            if (self.window.parentNode.classList.contains('dock-down')) {// and on the side
+        if (self.classList.contains('response-window-full')) {// on fullwindow
+            if (self.parentNode.classList.contains('dock-down')) {// and on the side
                 self.responseWindowToggle.dataset.icon = 'fas,fa-angle-down';
             }
-            else if (self.window.parentNode.classList.contains('dock-side')) {
+            else if (self.parentNode.classList.contains('dock-side')) {
                 self.responseWindowToggle.dataset.icon = 'fas,fa-angle-right';
             }
-            self.window.cssRemove(['height', 'width']);
+            self.cssRemove(['height', 'width']);
         }
         else {
-            if (self.window.parentNode.classList.contains('dock-down')) {
-                self.window.cssRemove(['width']);
-                self.window.css({ height: self.height });
+            if (self.parentNode.classList.contains('dock-down')) {
+                self.cssRemove(['width']);
+                self.css({ height: self.height });
 
                 self.responseWindowToggle.dataset.icon = 'fas,fa-angle-up';
             }
-            else if (self.window.parentNode.classList.contains('dock-side')) {
-                self.window.cssRemove(['height']);
-                self.window.css({ width: self.width });
+            else if (self.parentNode.classList.contains('dock-side')) {
+                self.cssRemove(['height']);
+                self.css({ width: self.width });
 
                 self.responseWindowToggle.dataset.icon = 'fas,fa-angle-left';
             }
@@ -253,32 +264,32 @@ export function Logger() {
 
     self.resize = () => {
         let resizeHeight = () => {
-            let parent = self.window.parentNode;
+            let parent = self.parentNode;
             let canDrag = false;
-            let position = self.window.position();
+            let position = self.position();
 
             let hover = event => {//monitor hovering mouse
-                if (self.window.parentNode.classList.contains('dock-side')) {
+                if (self.parentNode.classList.contains('dock-side') || self.classList.contains('response-window-full')) {
                     return;
                 }
 
-                let diff = event.y - self.window.position().top;
+                let diff = event.y - self.position().top;
                 if (diff < 20 && diff > -20) {
-                    self.window.css({ cursor: 'ns-resize' });
+                    self.css({ cursor: 'ns-resize' });
                 }
                 else if (!canDrag) {
-                    self.window.cssRemove(['cursor']);
+                    self.cssRemove(['cursor']);
                 }
             };
 
             let mousedown = event => {//try enabling drag
-                if (self.window.classList.contains('dock-side')) {
+                if (self.classList.contains('dock-side')  || self.classList.contains('response-window-full')) {
                     return;
                 }
 
-                let diff = event.y - self.window.position().top;
+                let diff = event.y - self.position().top;
                 if (diff < 20 && diff > -20) {
-                    self.window.css({ cursor: 'ns-resize' });
+                    self.css({ cursor: 'ns-resize' });
                     canDrag = true;
                 }
             };
@@ -290,13 +301,13 @@ export function Logger() {
                 let okHeight = height > 240;
                 let within = event.y > parent.position().top;
                 if (canDrag && within && okHeight) {
-                    self.window.css({ height: `${height}px` });
+                    self.css({ height: `${height}px` });
 
                     if (height > 250) {
-                        self.window.css({ position: 'absolute' });
+                        self.css({ position: 'absolute' });
                     }
                     else {
-                        self.window.cssRemove(['position']);
+                        self.cssRemove(['position']);
                     }
                     self.height = `${height}px`;
                 }
@@ -310,39 +321,39 @@ export function Logger() {
                 canDrag = false;
             };
 
-            self.window.addEventListener('mousemove', hover);
-            self.window.addEventListener('mousedown', mousedown);
+            self.addEventListener('mousemove', hover);
+            self.addEventListener('mousedown', mousedown);
             parent.addEventListener('mousemove', drag);
-            self.window.addEventListener('mouseup', mouseup);
+            self.addEventListener('mouseup', mouseup);
             parent.addEventListener('mouseup', mouseleave);
         }
 
         let resizeWidth = () => {
-            let parent = self.window.parentNode;
+            let parent = self.parentNode;
             let canDrag = false;
-            let position = self.window.position();
+            let position = self.position();
 
             let hover = event => {//monitor hovering mouse
-                if (self.window.parentNode.classList.contains('dock-down')) {
+                if (self.parentNode.classList.contains('dock-down') || self.classList.contains('response-window-full')) {
                     return;
                 }
 
-                let diff = event.x - self.window.position().left;
+                let diff = event.x - self.position().left;
                 if (diff < 20 && diff > -20) {
-                    self.window.css({ cursor: 'ew-resize' });
+                    self.css({ cursor: 'ew-resize' });
                 }
                 else if (!canDrag) {
-                    self.window.cssRemove(['cursor']);
+                    self.cssRemove(['cursor']);
                 }
             };
 
             let mousedown = event => {
-                if (self.window.classList.contains('dock-down')) {
+                if (self.classList.contains('dock-down') || self.classList.contains('response-window-full')) {
                     return;
                 }
-                let diff = event.x - self.window.position().left;
+                let diff = event.x - self.position().left;
                 if (diff < 30 && diff > -30) {
-                    self.window.css({ cursor: 'ew-resize' });
+                    self.css({ cursor: 'ew-resize' });
                     canDrag = true;
                 }
             };
@@ -355,13 +366,13 @@ export function Logger() {
                 let within = event.x > parent.position().left;
 
                 if (canDrag && within && okWidth) {
-                    self.window.css({ width: `${width}px` });
+                    self.css({ width: `${width}px` });
 
                     if (width > 360) {
-                        self.window.css({ position: 'absolute' });
+                        self.css({ position: 'absolute' });
                     }
                     else {
-                        self.window.cssRemove(['position']);
+                        self.cssRemove(['position']);
                     }
 
                     self.width = `${width}px`;
@@ -376,14 +387,14 @@ export function Logger() {
                 canDrag = false;
             };
 
-            self.window.addEventListener('mousemove', hover);
-            self.window.addEventListener('mousedown', mousedown);
+            self.addEventListener('mousemove', hover);
+            self.addEventListener('mousedown', mousedown);
             parent.addEventListener('mousemove', drag);
-            self.window.addEventListener('mouseup', mouseup);
+            self.addEventListener('mouseup', mouseup);
             parent.addEventListener('mouseup', mouseleave);
         }
 
-        self.window.onAdded(() => {
+        self.onAdded(() => {
             resizeHeight();
             resizeWidth();
         });
@@ -412,8 +423,8 @@ export function Logger() {
 
             self.optionsWindow.addEventListener('click', event => {//change the dock
                 if (event.target.classList.contains('dock-options-icon')) {
-                    self.window.parentNode.toggleClass('dock-down');
-                    self.window.parentNode.toggleClass('dock-side');
+                    self.parentNode.toggleClass('dock-down');
+                    self.parentNode.toggleClass('dock-side');
                     event.target.toggleClass('fa-rotate-90');
                     event.target.toggleClass('fa-rotate-180');
 
@@ -439,5 +450,8 @@ export function Logger() {
         return self.optionsWindow;
     }
 
+    self.init();
     return self;
 }
+
+module.exports = Logger;

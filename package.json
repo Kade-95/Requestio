@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/Kade-95/Requestio",
   "dependencies": {
-    "kedio": "^1.0.3"
+    "kedio": "^1.0.7"
   },
   "devDependencies": {
     "browser-resolve": "^2.0.0",
