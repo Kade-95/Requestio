@@ -1,4 +1,4 @@
-#navigator{
+#navigator {
     min-height: 50px;
-    background-color: rgb(255, 255, 255, .1);
+    background-color: var(--semi-base-color);
 }

@@ -1,0 +1,39 @@
+#system-settings-page{
+    align-items: flex-start;
+    justify-content: center;
+    grid-template-columns: 1fr;
+    gap: 1em;
+}
+
+.settings-pane{
+    width: -webkit-fill-availbable;
+    padding: 1em;
+    display: grid;
+    grid-template-rows: max-content max-content;
+    gap: 1em;
+}
+
+.settings-pane-title{
+    font-size: 1.3em;
+    text-decoration: underline;
+}
+
+.settings-pane-content{
+    border: 1px solid var(--semi-text-color);
+    width: fit-content;
+    max-width: -webkit-fill-available;
+    padding: 1em;
+}
+
+#settings-color .settings-pane-content{
+    display: grid;
+    grid-template-rows: max-content max-content max-content;
+    gap: 1em;
+}
+
+.settings-color-item{
+    display: grid;
+    align-items: center;
+    grid-template-columns: max-content 1fr;
+    gap: 1em;
+}

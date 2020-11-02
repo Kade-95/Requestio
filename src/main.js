@@ -1,6 +1,6 @@
-const { Base, AppLibrary, Compression, IndexedLibrary, ObjectsLibrary } = require('kedio/browser');
+const { Base, AppLibrary, Compression, IndexedLibrary } = require('kedio/browser');
 window.base = new Base(window);
-window.self = {};
+window.app = { settingsWindow: {} };
 window.compressor = Compression();
 window.appLibrary = AppLibrary();
 window.database = IndexedLibrary('Requestio');
@@ -8,11 +8,13 @@ window.database = IndexedLibrary('Requestio');
 const Request = require('./functions/Request');
 const PageTitle = require('./functions/PageTitle');
 const Explorer = require('./functions/Explorer');
-const settings = require('./functions/Settings')();
+const Settings = require('./functions/Settings');
 
-self.explorer = Explorer();
+app.explorer = Explorer();
 
-self.getRequestId = () => {
+app.defaultSettings = { _id: 'colors', data: { base: '#000000', text: '#ffffff', accient: '#000fff' } };
+window.settings = {};
+app.getRequestId = () => {
     let flag = true, id;
     return new Promise((resolve, reject) => {
         base.runParallel({
@@ -31,8 +33,8 @@ self.getRequestId = () => {
     });
 }
 
-self.createRequestPage = (data = {}, saved = {}) => {
-    let page = Array.from(self.pageContent.findAll('.single-file')).find(page => {
+app.createRequestPage = (data = {}, saved = {}) => {
+    let page = Array.from(app.pageContent.findAll('.single-file')).find(page => {
         return page.props._id == data._id;
     });
 
@@ -50,20 +52,20 @@ self.createRequestPage = (data = {}, saved = {}) => {
     }
 }
 
-self.saveActiveRequest = (flag) => {
+app.saveActiveRequest = (flag) => {
     let active = document.body.find('#page-content').find('.active.single-file');
     if (active) {
         if (flag) {//save as
             let data = JSON.parse(JSON.stringify(active.props));
-            self.getRequestId().then(id => {
+            app.getRequestId().then(id => {
                 data._id = id;
-                self.explorer.save(data);
+                app.explorer.save(data);
             });
         }
         else if (active.isChanged) {
             if (active.saved.name == undefined) {
                 let data = JSON.parse(JSON.stringify(active.props));
-                self.explorer.save(data).then(saved => {
+                app.explorer.save(data).then(saved => {
                     active.draft.name = saved.name;
                     active.pageTitle.changeTitle(saved.name);
                     active.saved = JSON.parse(JSON.stringify(active.props));
@@ -89,29 +91,27 @@ self.saveActiveRequest = (flag) => {
     }
 };
 
-self.openRequestPage = () => {
-    self.explorer.open().then(data => {
-        self.createRequestPage(data, data);
+app.openRequestPage = () => {
+    app.explorer.open().then(data => {
+        app.createRequestPage(data, data);
     });
 }
 
-self.openSettings = () => {
-    if (!Array.from(document.body.find('#page-content').findAll('.single-file')).includes(settings)) {
-        let pageTitle = PageTitle({ name: 'System:settings', content: settings });
-        settings.pageTitle = pageTitle;
+app.openSettings = () => {
+    if (!Array.from(document.body.find('#page-content').findAll('.single-file')).includes(app.settingsWindow)) {
+        let pageTitle = PageTitle({ name: 'System:settings', content: app.settingsWindow });
+        app.settingsWindow.pageTitle = pageTitle;
 
         document.body.find('#header-window').append(pageTitle);
-        document.body.find('#page-content').append(settings);
+        document.body.find('#page-content').append(app.settingsWindow);
     }
 
-    settings.pageTitle.click();
-
-
+    app.settingsWindow.pageTitle.click();
 }
 
-self.getFileOptions = () => {
-    if (self.fileOption == undefined) {
-        self.fileOption = base.createElement({
+app.getFileOptions = () => {
+    if (app.fileOption == undefined) {
+        app.fileOption = base.createElement({
             element: 'span', attributes: { id: 'file-options', class: 'listed-options' }, children: [
                 { element: 'span', attributes: { id: 'new', class: 'listed-option-item' }, text: 'New' },
                 { element: 'span', attributes: { id: 'open', class: 'listed-option-item' }, text: 'Open' },
@@ -120,91 +120,91 @@ self.getFileOptions = () => {
             ]
         });
 
-        self.fileOption.addEventListener('click', event => {
+        app.fileOption.addEventListener('click', event => {
             if (event.target.id == 'new') {
-                self.getRequestId().then(_id => {
-                    self.createRequestPage({ _id }, {});
+                app.getRequestId().then(_id => {
+                    app.createRequestPage({ _id }, {});
                 });
             }
             else if (event.target.id == 'open') {
-                self.openRequestPage();
+                app.openRequestPage();
             }
             else if (event.target.id == 'save') {
-                self.saveActiveRequest();
+                app.saveActiveRequest();
             }
             else if (event.target.id == 'save-as') {
-                self.saveActiveRequest(true);
+                app.saveActiveRequest(true);
             }
         });
 
-        self.fileOption.notBubbledEvent('click', event => {
-            if (self.fileOption.added) {
-                self.fileOption.added = false;
-                self.fileOption.remove();
+        app.fileOption.notBubbledEvent('click', event => {
+            if (app.fileOption.added) {
+                app.fileOption.added = false;
+                app.fileOption.remove();
             }
         });
     }
 
-    self.fileOption.onAdded(() => {
+    app.fileOption.onAdded(() => {
         let timed = setTimeout(() => {
-            self.fileOption.added = true;
+            app.fileOption.added = true;
             clearTimeout(timed);
         }, 100);
     });
 
-    return self.fileOption;
+    return app.fileOption;
 }
 
-self.getViewOptions = () => {
-    if (self.viewOption == undefined) {
-        self.viewOption = base.createElement({
+app.getViewOptions = () => {
+    if (app.viewOption == undefined) {
+        app.viewOption = base.createElement({
             element: 'span', attributes: { id: 'view-options', class: 'listed-options' }, children: [
                 { element: 'span', attributes: { id: 'settings', class: 'listed-option-item' }, text: 'Settings' },
             ]
         });
 
-        self.viewOption.addEventListener('click', event => {
+        app.viewOption.addEventListener('click', event => {
             if (event.target.id == 'settings') {
-                self.openSettings();
+                app.openSettings();
             }
         });
 
-        self.viewOption.notBubbledEvent('click', event => {
-            if (self.viewOption.added) {
-                self.viewOption.added = false;
-                self.viewOption.remove();
+        app.viewOption.notBubbledEvent('click', event => {
+            if (app.viewOption.added) {
+                app.viewOption.added = false;
+                app.viewOption.remove();
             }
         });
     }
 
-    self.viewOption.onAdded(() => {
+    app.viewOption.onAdded(() => {
         let timed = setTimeout(() => {
-            self.viewOption.added = true;
+            app.viewOption.added = true;
             clearTimeout(timed);
         }, 100);
     });
 
-    return self.viewOption;
+    return app.viewOption;
 }
 
-self.loadDraft = () => {
+app.loadDraft = () => {
     window.database.find({ collection: 'openpages', many: true }).then(pages => {
         for (let page of pages) {
             window.database.find({ collection: 'pages', query: { _id: page._id } }).then(saved => {
-                self.createRequestPage(page, saved || {});
+                app.createRequestPage(page, saved || {});
             });
         }
     });
 }
 
-self.render = () => {
-    self.init().then(() => {
+app.render = () => {
+    app.init().then(() => {
         let [sidebar, main] = document.body.makeElement([
             {
                 element: 'sidebar', attributes: { id: 'sidebar' }, children: [
                     {
                         element: 'span', attributes: { id: 'logo' }, html: `{${base.createElement({
-                            element: 'a', attributes: { style: { color: 'blue', fontSize: '1em' } }, text: 'Req'
+                            element: 'a', attributes: { style: { color: 'var(--accient-color)', fontSize: '1em' } }, text: 'Req'
                         }).outerHTML}}`
                     },
                     {
@@ -237,48 +237,84 @@ self.render = () => {
             }
         ]);
 
-        self.pageContent = document.body.find('#page-content');
+        app.pageContent = document.body.find('#page-content');
         let sideClicked;
 
         sidebar.addEventListener('click', event => {
             sideClicked = event.target;
             if ((sideClicked.id == 'file' || sideClicked.getParents('#file') != null) && !(sideClicked.id == 'file-options' || sideClicked.getParents('#file-options') != null)) {
-                sidebar.find('#file.sidebar-button').toggleChild(self.getFileOptions());
+                sidebar.find('#file.sidebar-button').toggleChild(app.getFileOptions());
             }
 
             if ((sideClicked.id == 'view' || sideClicked.getParents('#view') != null) && !(sideClicked.id == 'view-options' || sideClicked.getParents('#view-options') != null)) {
-                sidebar.find('#view.sidebar-button').toggleChild(self.getViewOptions());
+                sidebar.find('#view.sidebar-button').toggleChild(app.getViewOptions());
             }
         });
 
-        self.loadDraft();
+        app.loadDraft();
+        database.find({ collection: 'settings', many: true }).then(settings => {
+            for (let s of settings) {
+                window.settings[s._id] = s.data;
+            }
+            app.settingsWindow = Settings();
+            app.loadRoot();
+        });
     });
 }
 
-self.init = async () => {
-    let collections = ['pages', 'openpages'];
+app.init = async () => {
+    let collections = ['pages', 'openpages', 'settings'];
     let toCreate = [];
     for (let c of collections) {
         if (!await database.collectionExists(c)) {
             toCreate.push(c);
         }
     }
-    
+
     if (toCreate.length) {
         let splash = document.body.makeElement({
             element: 'span', attributes: { id: 'splash-screen' }, children: [
-                { element: 'i', attributes: { id: 'icon', class: 'fas fa-cog fa-spin' }},
+                { element: 'i', attributes: { id: 'icon', class: 'fas fa-cog fa-spin' } },
                 { element: 'a', attributes: { id: 'welcome-note' }, text: 'Setting up...' }
             ]
-        })
+        });
+
         return window.database.createCollection(...toCreate).then(done => {
-            splash.remove();
+            if (toCreate.includes('settings')) {
+                return database.insert({ collection: 'settings', query: app.defaultSettings }).then(() => {
+                    splash.remove();
+                    return
+                })
+            }
             return;
         });
     }
 }
 
+app.loadRoot = () => {
+    let root = document.head.find('#root');
+    let text = `
+    :root{
+    --base-color: ${window.settings.colors.base};
+    --semi-base-color: ${window.base.colorHandler.addOpacity(window.settings.colors.base, 0.5)};
+    --text-color: ${window.settings.colors.text};
+    --semi-text-color: ${window.base.colorHandler.addOpacity(window.settings.colors.text, 0.5)};
+    --accient-color: ${window.settings.colors.accient};
+    --semi-accient-color: ${window.base.colorHandler.addOpacity(window.settings.colors.accient, 0.5)};
+    --extra-color: rgb(0, 11, 77);
+    --small-font: .8em;
+    --normal-font: 1em;
+    --large-font: 1.2em;
+    --extra-font: 1.5em;
+        }
+    `;
+    if (!root) {
+        root = document.head.makeElement({ element: 'style', attributes: { id: 'root' } });
+    }
+    root.textContent = text;
+}
+
 document.addEventListener('DOMContentLoaded', event => {
     document.body.innerHTML = '';
-    self.render();
+    app.render();
 });
