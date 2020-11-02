@@ -2,8 +2,8 @@
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    border-bottom: 1px solid black;
-    background-color: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--base-color);
+    background-color: var(--semi-base-color);
 }
 
 .page-title{
@@ -17,7 +17,7 @@
 }
 
 .page-title.active, .page-title:hover{
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--semi-base-color);
 }
 
 .page-title .page-title-icon{

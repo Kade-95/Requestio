@@ -5,6 +5,7 @@
     align-items: flex-start;
     height: 100%;
     gap: 1em;
+    background-color: var(--text-color);
 }
 
 #logo{
@@ -34,8 +35,8 @@
 }
 
 .sidebar-button:hover{
-    background-color: black;
-    color: white;
+    background-color: var(--base-color);
+    color: var(--text-color);
 }
 
 #sidebar-panel > .sidebar-button-icon{
@@ -56,7 +57,7 @@
     grid-template-rows: repeat(3, max-content);
     grid-template-columns: 1fr;
     width: max-content;
-    background-color: white;
+    background-color: var(--text-color);
 }
 
 .listed-options.hide{
@@ -64,7 +65,7 @@
 }
 
 .listed-option-item{
-    color: black;
+    color: var(--base-color);
     display: flex;
     cursor: pointer;
     width: -webkit-fill-available;
@@ -72,6 +73,6 @@
 }
 
 .listed-option-item:hover{
-    background-color: black;
-    color: white;
+    background-color: var(--base-color);
+    color: var(--text-color);
 }

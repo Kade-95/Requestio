@@ -22,24 +22,24 @@
 .request-window-content-label {
     text-transform: uppercase;
     letter-spacing: .14em;
-    color: lightgray;
+    color: var(--semi-text-color);
 }
 
 .request-window-content-data {
     height: 30px;
-    border: 1px solid lightgray;
+    border: 1px solid var(--semi-text-color);
     outline: none;
     background-color: transparent;
-    color: lightgray;
+    color: var(--semi-text-color);
     letter-spacing: 0.05em;
 }
 
 .request-window-content-data option{
-    background-color: black;
+    background-color: var(--base-color);
 }
 
 #request-data {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: var(--semi-base-color);
     display: flex;
     flex-direction: column;
     gap: .3em;
@@ -55,15 +55,15 @@
 #submit-request {
     padding: .2em;
     cursor: pointer;
-    background-color: lightgray;
+    background-color: var(--semi-text-color);
 }
 
 #new-data {
     width: 30px;
     height: 30px;
     border-radius: 100%;
-    background-color: lightgray;
-    color: black;
+    background-color: var(--semi-text-color);
+    color: var(--base-color);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -71,7 +71,7 @@
 }
 
 #submit-request:hover, #new-data:hover {
-    background-color: gray;
+    background-color: var(--semi-text-color);
 }
 
 .request-single-data {
@@ -83,9 +83,9 @@
 
 .request-single-data-value, .request-single-data-name{
     height: 30px;
-    border: 1px solid lightgray;
+    border: 1px solid var(--semi-text-color);
     background-color: transparent;
-    color: lightgray;
+    color: var(--semi-text-color);
     outline: none;
     letter-spacing: 0.05em;
     width: 100%;

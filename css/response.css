@@ -1,7 +1,7 @@
 #response-window {
-    background-color: rgb(30, 30, 30);
+    background-color: var(--semi-base-color);
     overflow: hidden;
-    border: 1px solid lightgray;
+    border: 1px solid var(--semi-text-color);
     display: grid;
     grid-template-rows: max-content 1fr;
     grid-template-columns: 1fr;
@@ -36,19 +36,19 @@
     align-items: center;
     grid-template-columns: repeat(4, min-content);
     gap: 1em;
-    border-bottom: 1px solid lightgray;
+    border-bottom: 1px solid var(--semi-text-color);
     padding: .5em;
 }
 
 #response-window-search {
-    color: lightgray;
-    border: 1px solid lightgray;
+    color: var(--semi-text-color);
+    border: 1px solid var(--semi-text-color);
     background-color: transparent;
     height: 30px;
 }
 
 #response-window-toggle, #response-window-clear {
-    color: lightgray;
+    color: var(--semi-text-color);
     cursor: pointer;
 }
 
@@ -77,13 +77,13 @@
     outline: unset;
     border: unset;
     background-color: transparent;
-    color: white;
+    color: var(--text-color);
 }
 
 #response-window-options-pane {
     position: absolute;
     right: 0;
-    background-color: black;
+    background-color: var(--base-color);
     padding: 1em;
     display: grid;
     gap: .5em;
@@ -103,12 +103,12 @@
 }
 
 #dock-options .dock-options-icon {
-    color: gray;
+    color: var(--semi-text-color);
     cursor: pointer;
 }
 
 #dock-options .dock-options-icon:hover, #dock-options .dock-options-icon.active {
-    color: white;
+    color: var(--text-color);
 }
 
 .log-action{
